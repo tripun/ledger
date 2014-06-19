@@ -16,8 +16,8 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-;; MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+;; MA 02110-1301 USA.
 
 (defgroup ledger-test nil
   "Definitions for the Ledger testing framework"
@@ -98,9 +98,9 @@
         (ledger-mode)
         (if input
             (insert input)
-	    (insert "2012-03-17 Payee\n")
-	    (insert "    Expenses:Food                $20\n")
-	    (insert "    Assets:Cash\n"))
+          (insert "2012-03-17 Payee\n")
+          (insert "    Expenses:Food                $20\n")
+          (insert "    Assets:Cash\n"))
         (insert "\ntest reg\n")
         (if output
             (insert output))
@@ -121,7 +121,7 @@
         (let ((prev-directory default-directory))
           (cd ledger-source-directory)
           (unwind-protect
-	       (async-shell-command (format "\"%s\" %s" command args))
+              (async-shell-command (format "\"%s\" %s" command args))
             (cd prev-directory)))))))
 
 (provide 'ledger-test)

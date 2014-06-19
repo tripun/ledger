@@ -93,23 +93,19 @@ std::size_t session_t::read_data(const string& master_account)
     acct = journal->find_account(master_account);
 
   optional<path> price_db_path;
-  if (HANDLED(price_db_)){
+  if (HANDLED(price_db_)) {
     price_db_path = resolve_path(HANDLER(price_db_).str());
-    if (!exists(price_db_path.get())){
+    if (!exists(price_db_path.get())) {
       throw_(parse_error, _f("Could not find specified price-db file %1%") % price_db_path);
     }
   } else {
-    if (const char * home_var = std::getenv("HOME")){
+    if (const char * home_var = std::getenv("HOME")) {
       price_db_path = (path(home_var) / ".pricedb");
     } else {
       price_db_path = ("./.ledgerrc");
     }
   }
 
-  if (HANDLED(explicit))
-    journal->force_checking = true;
-  if (HANDLED(check_payees))
-    journal->check_payees = true;
   if (HANDLED(day_break))
     journal->day_break = true;
 
@@ -117,15 +113,21 @@ std::size_t session_t::read_data(const string& master_account)
     journal->recursive_aliases = true;
   if (HANDLED(no_aliases))
     journal->no_aliases = true;
-  
+
+  if (HANDLED(explicit))
+    journal->force_checking = true;
+  if (HANDLED(check_payees))
+    journal->check_payees = true;
+
   if (HANDLED(permissive))
     journal->checking_style = journal_t::CHECK_PERMISSIVE;
   else if (HANDLED(pedantic))
     journal->checking_style = journal_t::CHECK_ERROR;
   else if (HANDLED(strict))
     journal->checking_style = journal_t::CHECK_WARNING;
-  else if (HANDLED(value_expr_))
-    journal->value_expr     = HANDLER(value_expr_).str();
+
+  if (HANDLED(value_expr_))
+    journal->value_expr = HANDLER(value_expr_).str();
 
 #if HAVE_BOOST_SERIALIZATION
   optional<archive_t> cache;

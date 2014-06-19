@@ -36,8 +36,6 @@ LEVELS = {'DEBUG':    logging.DEBUG,
           'ERROR':    logging.ERROR,
           'CRITICAL': logging.CRITICAL}
 
-search_prefixes = [ '/usr/local', '/opt/local', '/sw', '/usr' ]
-
 def which(program):
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
@@ -71,6 +69,16 @@ class BoostInfo(object):
         if system == 'centos':
             return [ 'boost-devel' ]
 
+        elif system == 'ubuntu-trusty':
+            return [ 'libboost-dev',
+                     'libboost-date-time-dev',
+                     'libboost-filesystem-dev',
+                     'libboost-iostreams-dev',
+                     'libboost-python-dev',
+                     'libboost-regex-dev',
+                     'libboost-system-dev',
+                     'libboost-test-dev' ]
+
         elif system == 'ubuntu-saucy' or system == 'ubuntu-precise':
             return [ 'autopoint',
                      'libboost-dev',
@@ -89,22 +97,6 @@ class BoostInfo(object):
                      'libboost-filesystem-dev',
                      'libboost-iostreams-dev',
                      'libboost-python-dev' ]
-
-        elif system == 'ubuntu-karmic' or system == 'ubuntu-hardy':
-            return [ 'bjam', 'libboost-dev',
-                     'libboost-regex-dev',
-                     'libboost-date-time-dev',
-                     'libboost-filesystem-dev',
-                     'libboost-iostreams-dev',
-                     'libboost-python-dev' ]
-
-        elif system == 'ubuntu-oneiric':
-            return [ 'libboost-dev',
-                     'libboost-python-dev',
-                     'libboost-regex-dev',
-                     'libboost-date-time-dev',
-                     'libboost-filesystem-dev',
-                     'libboost-iostreams-dev' ]
 
 
 class CommandLineApp(object):
@@ -563,7 +555,26 @@ class PrepareBuild(CommandLineApp):
                     release = open('/etc/lsb-release')
                     info = release.read()
                     release.close()
-                    if re.search('saucy', info):
+                    if re.search('trusty', info):
+                        self.log.info('Looks like you are using APT on Ubuntu Trusty')
+                        packages = [
+                            'sudo', 'apt-get', 'install',
+                            'build-essential',
+                            'doxygen',
+                            'cmake',
+                            'ninja-build',
+                            'zlib1g-dev',
+                            'libbz2-dev',
+                            'python-dev',
+                            'libgmp3-dev',
+                            'libmpfr-dev',
+                            'gettext',
+                            'libedit-dev',
+                            'texinfo',
+                            'lcov',
+                            'sloccount'
+                        ] + BoostInfo().dependencies('ubuntu-trusty')
+                    elif re.search('saucy', info):
                         self.log.info('Looks like you are using APT on Ubuntu Saucy')
                         packages = [
                             'sudo', 'apt-get', 'install',
@@ -600,77 +611,6 @@ class PrepareBuild(CommandLineApp):
                             'lcov',
                             'sloccount'
                         ] + BoostInfo().dependencies('ubuntu-precise')
-                    elif re.search('karmic', info):
-                        self.log.info('Looks like you are using APT on Ubuntu Karmic')
-                        packages = [
-                            'sudo', 'apt-get', 'install',
-                            'build-essential',
-                            'libtool',
-                            'autoconf',
-                            'automake',
-                            'zlib1g-dev',
-                            'libbz2-dev',
-                            'python-dev',
-                            'libgmp3-dev',
-                            'libmpfr-dev',
-                            'gettext',
-                            'cvs',
-                            'libedit-dev',
-                            #'texlive-full',
-                            #'doxygen',
-                            #'graphviz',
-                            'texinfo',
-                            'lcov',
-                            'sloccount'
-                        ] + BoostInfo().dependencies('ubuntu-karmic')
-                    elif re.search('hardy', info):
-                        self.log.info('Looks like you are using APT on Ubuntu Hardy')
-                        packages = [
-                            'sudo', 'apt-get', 'install',
-                            'build-essential',
-                            'libtool',
-                            'autoconf',
-                            'automake',
-                            'autopoint',
-                            'zlib1g-dev',
-                            'libbz2-dev',
-                            'python-dev',
-                            'cvs',
-                            'gettext',
-                            'libgmp3-dev',
-                            'libmpfr-dev',
-                            'libedit-dev',
-                            #'texlive-full',
-                            #'doxygen',
-                            #'graphviz',
-                            'texinfo',
-                            'lcov',
-                            'sloccount'
-                        ] + self.boost_info.dependencies('ubuntu-hardy')
-                    elif re.search('oneiric', info):
-                        self.log.info('Looks like you are using APT on Ubuntu Oneiric')
-                        packages = [
-                            'sudo', 'apt-get', 'install',
-                            'build-essential',
-                            'libtool',
-                            'autoconf',
-                            'automake',
-                            'autopoint',
-                            'zlib1g-dev',
-                            'libbz2-dev',
-                            'python-dev',
-                            'cvs',
-                            'gettext',
-                            'libgmp3-dev',
-                            'libmpfr-dev',
-                            'libedit-dev',
-                            #'texlive-full',
-                            #'doxygen',
-                            #'graphviz',
-                            'texinfo',
-                            'lcov',
-                            'sloccount'
-                        ] + self.boost_info.dependencies('ubuntu-oneiric')
                     else:
                         self.log.info('I do not recognize your version of Ubuntu!')
                         packages = None
@@ -868,12 +808,16 @@ class PrepareBuild(CommandLineApp):
         if self.options.boost_root:
             conf_args.append('-DBOOST_ROOT=%s' %
                              self.options.boost_root)
+            conf_args.append('-DBoost_NO_SYSTEM_PATHS=TRUE')
         if self.options.boost_suffix:
             conf_args.append('-DBoost_COMPILER=%s' %
                              self.options.boost_suffix)
         if self.options.boost_include:
             conf_args.append('-DBOOST_INCLUDEDIR=%s' %
                              self.options.boost_include)
+        if self.options.build_dir:
+            conf_args.append('-DBUILD_DIR=%s' %
+                             self.options.build_dir)
 
         if self.prefix_directory():
             conf_args.append('-DCMAKE_INSTALL_PREFIX=%s' % self.prefix_directory())
@@ -941,7 +885,7 @@ class PrepareBuild(CommandLineApp):
             make_args.append('-j%d' % self.options.jobs)
 
         if self.options.verbose:
-            make_args.append('VERBOSE=1')
+            make_args.append('-v' if self.options.use_ninja else 'VERBOSE=1')
 
         self.log.debug('Configure arguments => ' + str(config_args))
         self.log.debug('Makefile arguments  => ' + str(make_args))

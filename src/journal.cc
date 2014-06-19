@@ -95,8 +95,9 @@ void journal_t::initialize()
   force_checking    = false;
   check_payees      = false;
   day_break         = false;
-  checking_style    = CHECK_PERMISSIVE;
+  checking_style    = CHECK_NORMAL;
   recursive_aliases = false;
+  no_aliases        = false;
 }
 
 void journal_t::add_account(account_t * acct)
@@ -173,7 +174,7 @@ account_t * journal_t::expand_aliases(string name) {
   // prevent infinite excursion. Each alias may only be expanded at most once.
   account_t * result = NULL;
 
-  if(no_aliases)
+  if (no_aliases)
     return result;
 
   bool keep_expanding = true;
@@ -183,7 +184,7 @@ account_t * journal_t::expand_aliases(string name) {
     if (account_aliases.size() > 0) {
       accounts_map::const_iterator i = account_aliases.find(name);
       if (i != account_aliases.end()) {
-        if(std::find(already_seen.begin(), already_seen.end(), name) != already_seen.end()) {
+        if (std::find(already_seen.begin(), already_seen.end(), name) != already_seen.end()) {
           throw_(std::runtime_error,
                  _f("Infinite recursion on alias expansion for %1%")
                  % name);
@@ -196,11 +197,11 @@ account_t * journal_t::expand_aliases(string name) {
         // only check the very first account for alias expansion, in case
         // that can be expanded successfully
         size_t colon = name.find(':');
-        if(colon != string::npos) {
+        if (colon != string::npos) {
           string first_account_name = name.substr(0, colon);
           accounts_map::const_iterator j = account_aliases.find(first_account_name);
           if (j != account_aliases.end()) {
-            if(std::find(already_seen.begin(), already_seen.end(), first_account_name) != already_seen.end()) {
+            if (std::find(already_seen.begin(), already_seen.end(), first_account_name) != already_seen.end()) {
               throw_(std::runtime_error,
                      _f("Infinite recursion on alias expansion for %1%")
                      % first_account_name);
@@ -248,7 +249,7 @@ string journal_t::register_payee(const string& name, xact_t * xact)
     }
   }
 
-  foreach (payee_mapping_t& value, payee_mappings) {
+  foreach (payee_alias_mapping_t& value, payee_alias_mappings) {
     if (value.first.match(name)) {
       payee = value.second;
       break;
@@ -363,6 +364,21 @@ namespace {
   }
 }
 
+bool lt_posting_account(post_t * left, post_t * right) {
+  return left->account < right->account;
+}
+
+bool is_equivalent_posting(post_t * left, post_t * right)
+{
+  if (left->account != right->account)
+    return false;
+
+  if (left->amount != right->amount)
+    return false;
+
+  return true;
+}
+
 bool journal_t::add_xact(xact_t * xact)
 {
   xact->journal = this;
@@ -385,12 +401,54 @@ bool journal_t::add_xact(xact_t * xact)
   // will have been performed by extend_xact, so asserts can still be
   // applied to it.
   if (optional<value_t> ref = xact->get_tag(_("UUID"))) {
+    std::string uuid = ref->to_string();
     std::pair<checksum_map_t::iterator, bool> result
-      = checksum_map.insert(checksum_map_t::value_type(ref->to_string(), xact));
+      = checksum_map.insert(checksum_map_t::value_type(uuid, xact));
     if (! result.second) {
-      // jww (2012-02-27): Confirm that the xact in
-      // (*result.first).second is exact match in its significant
-      // details to xact.
+      // This UUID has been seen before; apply any postings which the
+      // earlier version may have deferred.
+      foreach (post_t * post, xact->posts) {
+        account_t * acct = post->account;
+        if (acct->deferred_posts) {
+          auto i = acct->deferred_posts->find(uuid);
+          if (i != acct->deferred_posts->end()) {
+            for (post_t * rpost : (*i).second)
+              if (acct == rpost->account)
+                acct->add_post(rpost);
+            acct->deferred_posts->erase(i);
+          }
+        }
+      }
+
+      xact_t * other = (*result.first).second;
+
+      // Copy the two lists of postings (which should be relatively
+      // short), and make sure that the intersection is the empty set
+      // (i.e., that they are the same list).
+      std::vector<post_t *> this_posts(xact->posts.begin(),
+                                       xact->posts.end());
+      std::sort(this_posts.begin(), this_posts.end(),
+                lt_posting_account);
+      std::vector<post_t *> other_posts(other->posts.begin(),
+                                        other->posts.end());
+      std::sort(other_posts.begin(), other_posts.end(),
+                lt_posting_account);
+      bool match = std::equal(this_posts.begin(), this_posts.end(),
+                              other_posts.begin(), is_equivalent_posting);
+
+      if (! match || this_posts.size() != other_posts.size()) {
+        add_error_context(_("While comparing this previously seen transaction:"));
+        add_error_context(source_context(other->pos->pathname,
+                                         other->pos->beg_pos,
+                                         other->pos->end_pos, "> "));
+        add_error_context(_("to this later transaction:"));
+        add_error_context(source_context(xact->pos->pathname,
+                                         xact->pos->beg_pos,
+                                         xact->pos->end_pos, "> "));
+        throw_(std::runtime_error,
+               _f("Transactions with the same UUID must have equivalent postings"));
+      }
+
       xact->journal = NULL;
       return false;
     }

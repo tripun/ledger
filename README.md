@@ -7,6 +7,15 @@ UNIX command-line.  This may put off some users, since there is no flashy UI,
 but for those who want unparalleled reporting access to their data there are
 few alternatives.
 
+Ledger uses text files for input.  It reads the files and generates reports;
+there is no other database or stored state.  To use Ledger, you create a
+file of your account names and transactions, run from the command line with
+some options to specify input and requested reports, and get output.
+The output is generally plain text, though you could generate a graph or
+html instead.  Ledger is simple in concept, surprisingly rich in ability,
+and easy to use.
+
+
 ## For the Impatient
 
 I know, you just want to build and play.  If you have all the dependencies
@@ -54,7 +63,8 @@ much further with those.
 ## Dependencies
 
 If you wish to proceed in this venture, you'll need a few dependencies.  The
-easiest way to get them for your platform is to run:
+easiest way to get them for your platform is to run this handy Python
+script:
 
     ./acprep dependencies
 
@@ -91,45 +101,46 @@ And for building the current `maint` branch:
 If you build stuff using MacPorts on OS X, as I do, here is what you would
 run:
 
-    sudo port install -f cmake python26
-        libiconv +universal zlib +universal gmp +universal
-        mpfr +universal ncurses +universal ncursesw +universal
-        gettext +universal libedit +universal boost-jam
-        boost +st+python26+icu texlive doxygen graphviz
-        texinfo lcov sloccount
+    sudo port install -f cmake python26 \
+         libiconv +universal zlib +universal gmp +universal \
+         mpfr +universal ncurses +universal ncursesw +universal \
+         gettext +universal libedit +universal boost-jam \
+         boost +st+python26+icu texlive doxygen graphviz \
+         texinfo lcov sloccount
 
 ### Ubuntu
 
 If you're going to build on Ubuntu, `sudo apt-get install ...` the
-following packages (current as of Ubuntu 12.04):
+following packages (current as of Ubuntu 14.04):
 
-    sudo apt-get install build-essential cmake zlib1g-dev libbz2-dev
-         python-dev gettext libgmp3-dev libmpfr-dev libboost-dev
-         libboost-regex-dev libboost-date-time-dev
-         libboost-filesystem-dev libboost-python-dev texinfo lcov
+    sudo apt-get install build-essential cmake doxygen \
+         libboost-system-dev libboost-dev python-dev gettext git \
+         libboost-date-time-dev libboost-filesystem-dev \
+         libboost-iostreams-dev libboost-python-dev libboost-regex-dev \
+         libboost-test-dev libedit-dev libgmp3-dev libmpfr-dev texinfo
+
+Or, for Ubuntu 12.04:
+
+    sudo apt-get install build-essential cmake zlib1g-dev libbz2-dev \
+         python-dev gettext libgmp3-dev libmpfr-dev libboost-dev \
+         libboost-regex-dev libboost-date-time-dev \
+         libboost-filesystem-dev libboost-python-dev texinfo lcov \
          sloccount libboost-iostreams-dev libboost-test-dev
-
-Or, for Ubuntu Karmic:
-
-    sudo apt-get install build-essential cmake texinfo python-dev zlib1g-dev
-         libbz2-dev libgmp3-dev bjam gettext cvs libboost1.40-dev
-         libboost-regex1.40-dev libboost-date-time1.40-dev
-         libboost-filesystem1.40-dev libmpfr-dev
 
 ### Debian
 
 Debian squeeze (6.0): the version of boost in squeeze is too old
 for ledger and unfortunately no backport is available at the moment.
 
-Debian wheezy (7.0) contains all components needed to build ledger.
-You can install all required build dependencies using the following
-command:
+Debian 7 (wheezy) and Debian 8 (jessie) contain all components needed to
+build ledger.  You can install all required build dependencies using the
+following command:
 
-    sudo apt-get install build-essential cmake autopoint texinfo python-dev
-         zlib1g-dev libbz2-dev libgmp3-dev gettext libmpfr-dev
-         libboost-date-time1.49-dev libboost-filesystem1.49-dev
-         libboost-graph1.49-dev libboost-iostreams1.49-dev
-         libboost-python1.49-dev libboost-regex1.49-dev libboost-test1.49-dev
+    sudo apt-get install build-essential cmake autopoint texinfo python-dev \
+         zlib1g-dev libbz2-dev libgmp3-dev gettext libmpfr-dev \
+         libboost-date-time-dev libboost-filesystem-dev \
+         libboost-graph-dev libboost-iostreams-dev \
+         libboost-python-dev libboost-regex-dev libboost-test-dev
 
 ## Building
 
@@ -154,6 +165,7 @@ You can run `make check` to confirm the result, and `make install` to install.
 Now that you're up and running, here are a few resources to keep in mind:
 
  - [Home page](http://ledger-cli.org)
+ - [Documentation](http://www.ledger-cli.org/docs.html)
  - [IRC channel](irc://irc.freenode.net/ledger)
  - [Mailing List / Forum](http://groups.google.com/group/ledger-cli)
  - [GitHub project page](http://github.com/ledger/ledger)
