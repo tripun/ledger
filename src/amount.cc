@@ -1241,7 +1241,7 @@ bool amount_t::parse(std::istream& in, const parse_flags_t& flags)
   }
 
   VERIFY(valid());
-
+  DEBUG("amount.parse","amount.cc: parse");
   return true;
 }
 

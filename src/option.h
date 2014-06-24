@@ -89,7 +89,6 @@ public:
   }
 
   void report(std::ostream& out) const {
-  DEBUG("amount.parse","\noption.cc:report check output \n");
     if (handled && source) {
       out.width(24);
       out << std::right << desc();
