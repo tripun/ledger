@@ -753,6 +753,7 @@ value_t& value_t::operator/=(const value_t& val)
 
 bool value_t::is_equal_to(const value_t& val) const
 {
+  DEBUG("amount.parse","value.cc:is_equal_to(): type check");
   switch (type()) {
   case VOID:
     return val.type() == VOID;

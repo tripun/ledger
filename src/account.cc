@@ -389,7 +389,7 @@ expr_t::ptr_op_t account_t::lookup(const symbol_t::kind_t kind,
   switch (fn_name[0]) {
   case 'a':
     if (fn_name[1] == '\0' || fn_name == "amount")
-      return WRAP_FUNCTOR(get_wrapper<&get_amount>);
+      {DEBUG("amount.parse","account.cc:get_amount wrapper in lookup");return WRAP_FUNCTOR(get_wrapper<&get_amount>);}
     else if (fn_name == "account")
       return WRAP_FUNCTOR(&get_account);
     else if (fn_name == "account_base")

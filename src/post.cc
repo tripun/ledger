@@ -185,6 +185,7 @@ namespace {
 
   value_t get_amount(post_t& post)
   {
+   DEBUG("amount.parse","post.cc:get_amount");
     if (post.has_xdata() && post.xdata().has_flags(POST_EXT_COMPOUND))
       return post.xdata().compound_value;
     else if (post.amount.is_null())
