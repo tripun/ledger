@@ -595,7 +595,6 @@ amount_t::precision_t amount_t::display_precision() const
            _("Cannot determine display precision of an uninitialized amount"));
 
   commodity_t& comm(commodity());
-  DEBUG("amount.parse","amount.cc: display_precision "+lexical_cast<string>(precision()));
   if (comm && ! keep_precision())
     return comm.precision();
   else
@@ -846,7 +845,7 @@ bool amount_t::is_zero() const
     throw_(amount_error, _("Cannot determine if an uninitialized amount is zero"));
 
   if (has_commodity()) {
-    DEBUG("amount.parse","amount.cc: is_zero "+lexical_cast<string>(precision()) + "  "+this->quantity_string());
+    DEBUG("amount.parse","amount.cc: is_zero prec "+lexical_cast<string>(precision()) + " quant string  "+this->quantity_string());
     if (keep_precision() || quantity->prec <= commodity().precision()) {
       return is_realzero();
     }
@@ -1274,7 +1273,7 @@ void amount_t::print(std::ostream& _out, const uint_least8_t flags) const
     _out << "<null>";
     return;
   }
-
+  DEBUG("amount.parse","amount.cc:print: value double "+lexical_cast<string>(this->to_double()));
   std::ostringstream out;
 
   commodity_t& comm(commodity());
