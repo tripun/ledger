@@ -147,12 +147,10 @@ post_handler_ptr chain_post_handlers(post_handler_ptr base_handler,
                                               report.HANDLED(revalued) &&
                                               ! report.HANDLED(no_rounding));
     handler.reset(display_filter);
-    DEBUG("amount.parse","chain.cc:display_filter calc_posts");
 
     // filter_posts will only pass through posts matching the
     // `display_predicate'.
     if (report.HANDLED(display_)) {
-      DEBUG("amount.parse","chain.cc:display_predicate");
       display_predicate = predicate_t(report.HANDLER(display_).str(),
                                       report.what_to_keep());
       handler.reset(new filter_posts(handler, display_predicate, report));

@@ -64,6 +64,7 @@ balance_t& balance_t::operator+=(const balance_t& bal)
 {
   foreach (const amounts_map::value_type& pair, bal.amounts)
     *this += pair.second;
+
   return *this;
 }
 
@@ -75,7 +76,7 @@ balance_t& balance_t::operator+=(const amount_t& amt)
 
   if (amt.is_realzero())
     return *this;
-
+  DEBUG("amount.parse","balance.cc: amount added "+lexical_cast<string>(amt.commodity()));
   amounts_map::iterator i = amounts.find(&amt.commodity());
   if (i != amounts.end())
     i->second += amt;

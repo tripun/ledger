@@ -427,7 +427,7 @@ bool amount_t::operator==(const amount_t& amt) const
 amount_t& amount_t::operator+=(const amount_t& amt)
 {
   VERIFY(amt.valid());
-
+  DEBUG("amount.parse","amount.cc:+= addition");
   if (! quantity || ! amt.quantity) {
     if (quantity)
       throw_(amount_error, _("Cannot add an uninitialized amount to an amount"));
@@ -487,7 +487,7 @@ amount_t& amount_t::operator-=(const amount_t& amt)
 amount_t& amount_t::multiply(const amount_t& amt, bool ignore_commodity)
 {
   VERIFY(amt.valid());
-
+  DEBUG("amount.parse","amount.cc:multiply "+lexical_cast<string>(precision()) + "  "+this->quantity_string());
   if (! quantity || ! amt.quantity) {
     if (quantity)
       throw_(amount_error, _("Cannot multiply an amount by an uninitialized amount"));
@@ -595,7 +595,7 @@ amount_t::precision_t amount_t::display_precision() const
            _("Cannot determine display precision of an uninitialized amount"));
 
   commodity_t& comm(commodity());
-
+  DEBUG("amount.parse","amount.cc: display_precision "+lexical_cast<string>(precision()));
   if (comm && ! keep_precision())
     return comm.precision();
   else
@@ -623,6 +623,7 @@ void amount_t::in_place_invert()
 
 void amount_t::in_place_round()
 {
+  DEBUG("amount.parse","amount.cc:in place round");
   if (! quantity)
     throw_(amount_error, _("Cannot set rounding for an uninitialized amount"));
   else if (! keep_precision())
@@ -845,6 +846,7 @@ bool amount_t::is_zero() const
     throw_(amount_error, _("Cannot determine if an uninitialized amount is zero"));
 
   if (has_commodity()) {
+    DEBUG("amount.parse","amount.cc: is_zero "+lexical_cast<string>(precision()) + "  "+this->quantity_string());
     if (keep_precision() || quantity->prec <= commodity().precision()) {
       return is_realzero();
     }
