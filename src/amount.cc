@@ -846,6 +846,10 @@ bool amount_t::is_zero() const
 
   if (has_commodity()) {
     DEBUG("amount.parse","amount.cc: is_zero prec "+lexical_cast<string>(precision()) + " quant string  "+this->quantity_string());
+    amount_t temp(*this);
+    temp.in_place_roundto(1);
+    DEBUG("amount.parse","rounded amount "+ lexical_cast<string>(temp.to_double()));
+    DEBUG("amount.parse","amount.cc: is_zero exp round "+lexical_cast<string>(precision()) + " quant string  "+this->quantity_string());
     if (keep_precision() || quantity->prec <= commodity().precision()) {
       return is_realzero();
     }
