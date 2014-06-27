@@ -1136,8 +1136,10 @@ void instance_t::commodity_default_directive(commodity_t& comm)
 void instance_t::commodity_precision_directive(commodity_t& comm,string precise)
 {
   trim(precise);
-  uint8_t _precision_level=boost::lexical_cast<uint8_t>(precise);
-  DEBUG("option.names","precision directive called ");
+  int_least16_t _precision_level=boost::lexical_cast<int_least16_t>(precise);
+  comm.set_custom_precision(_precision_level);
+  comm.add_flags(COMMODITY_SET_CUSTOM_PRECISION);
+  DEBUG("amount.parse","precision directive called " +lexical_cast<string>(comm.custom_precision()));
 }
 void instance_t::tag_directive(char * line)
 {

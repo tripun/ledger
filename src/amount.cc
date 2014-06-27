@@ -624,9 +624,15 @@ void amount_t::in_place_round()
     throw_(amount_error, _("Cannot set rounding for an uninitialized amount"));
   else if (! keep_precision())
     return;
-  in_place_roundto(2);
+
+   if(this->has_commodity())
+   {
+   commodity_t &comm=this->commodity();
+   if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
+        {in_place_roundto(comm.custom_precision());DEBUG("amount.parse","amount.cc:in place round commodity "+ lexical_cast<string>(comm)+" value "+lexical_cast<string>(this->quantity_string()));}
+
+   }
   _dup();
-  DEBUG("amount.parse","amount.cc:in place round "+ lexical_cast<string>(this->to_double()));
   set_keep_precision(false);
 }
 
