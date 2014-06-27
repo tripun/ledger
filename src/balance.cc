@@ -73,16 +73,15 @@ balance_t& balance_t::operator+=(const amount_t& amt)
   if (amt.is_null())
     throw_(balance_error,
            _("Cannot add an uninitialized amount to a balance"));
-  DEBUG("amount.parse","balance.cc: amount added, value before "+lexical_cast<string>(amt.to_double()));
   if (amt.is_realzero())
     return *this;
   amounts_map::iterator i = amounts.find(&amt.commodity());
   if (i != amounts.end())
-    i->second += amt;
+   { DEBUG("amount.parse","balance.cc: amount added, value before "+lexical_cast<string>(i->second.to_double()));i->second += amt;DEBUG("amount.parse","balance.cc: amount added, value after "+lexical_cast<string>(i->second.to_double()));}
   else
     amounts.insert(amounts_map::value_type(&amt.commodity(), amt));
 
-  DEBUG("amount.parse","balance.cc: amount added, value after "+lexical_cast<string>(amt.to_double()));
+
   return *this;
 }
 

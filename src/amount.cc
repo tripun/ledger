@@ -427,7 +427,7 @@ bool amount_t::operator==(const amount_t& amt) const
 amount_t& amount_t::operator+=(const amount_t& amt)
 {
   VERIFY(amt.valid());
-  DEBUG("amount.parse","amount.cc:+= addition");
+  DEBUG("amount.parse","amount.cc:+= value before "+lexical_cast<string>(this->to_double()));
   if (! quantity || ! amt.quantity) {
     if (quantity)
       throw_(amount_error, _("Cannot add an uninitialized amount to an amount"));
@@ -620,13 +620,13 @@ void amount_t::in_place_invert()
 
 void amount_t::in_place_round()
 {
-  DEBUG("amount.parse","amount.cc:in place round");
   if (! quantity)
     throw_(amount_error, _("Cannot set rounding for an uninitialized amount"));
   else if (! keep_precision())
     return;
-
+  in_place_roundto(2);
   _dup();
+  DEBUG("amount.parse","amount.cc:in place round "+ lexical_cast<string>(this->to_double()));
   set_keep_precision(false);
 }
 
@@ -1271,7 +1271,7 @@ void amount_t::print(std::ostream& _out, const uint_least8_t flags) const
     _out << "<null>";
     return;
   }
-  DEBUG("amount.parse","amount.cc:print: value double "+lexical_cast<string>(this->to_double()));
+  DEBUG("amount.parse","amount.cc:print");
   std::ostringstream out;
 
   commodity_t& comm(commodity());
