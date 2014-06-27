@@ -450,7 +450,7 @@ amount_t& amount_t::operator+=(const amount_t& amt)
   if (has_commodity() == amt.has_commodity())
     if (quantity->prec < amt.quantity->prec)
       quantity->prec = amt.quantity->prec;
-
+    DEBUG("amount.parse", "amount.cc:+= value after "+lexical_cast<string>(this->to_double()));
   return *this;
 }
 
@@ -487,7 +487,6 @@ amount_t& amount_t::operator-=(const amount_t& amt)
 amount_t& amount_t::multiply(const amount_t& amt, bool ignore_commodity)
 {
   VERIFY(amt.valid());
-  DEBUG("amount.parse","amount.cc:multiply "+lexical_cast<string>(precision()) + "  "+this->quantity_string());
   if (! quantity || ! amt.quantity) {
     if (quantity)
       throw_(amount_error, _("Cannot multiply an amount by an uninitialized amount"));
@@ -511,7 +510,6 @@ amount_t& amount_t::multiply(const amount_t& amt, bool ignore_commodity)
     if (quantity->prec > comm_prec + extend_by_digits)
       quantity->prec = static_cast<precision_t>(comm_prec + extend_by_digits);
   }
-
   return *this;
 }
 
@@ -846,10 +844,6 @@ bool amount_t::is_zero() const
 
   if (has_commodity()) {
     DEBUG("amount.parse","amount.cc: is_zero prec "+lexical_cast<string>(precision()) + " quant string  "+this->quantity_string());
-    amount_t temp(*this);
-    temp.in_place_roundto(1);
-    DEBUG("amount.parse","rounded amount "+ lexical_cast<string>(temp.to_double()));
-    DEBUG("amount.parse","amount.cc: is_zero exp round "+lexical_cast<string>(precision()) + " quant string  "+this->quantity_string());
     if (keep_precision() || quantity->prec <= commodity().precision()) {
       return is_realzero();
     }
