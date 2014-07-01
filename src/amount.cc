@@ -427,7 +427,7 @@ bool amount_t::operator==(const amount_t& amt) const
 amount_t& amount_t::operator+=(const amount_t& amt)
 {
   VERIFY(amt.valid());
-  DEBUG("amount.parse","amount.cc:+= value before "+lexical_cast<string>(this->to_double()));
+  DEBUG("amount.parse", "amount.cc:+= value before "+this->quantity_string());
   if (! quantity || ! amt.quantity) {
     if (quantity)
       throw_(amount_error, _("Cannot add an uninitialized amount to an amount"));
@@ -450,7 +450,7 @@ amount_t& amount_t::operator+=(const amount_t& amt)
   if (has_commodity() == amt.has_commodity())
     if (quantity->prec < amt.quantity->prec)
       quantity->prec = amt.quantity->prec;
-    DEBUG("amount.parse", "amount.cc:+= value after "+lexical_cast<string>(this->to_double()));
+    DEBUG("amount.parse", "amount.cc:+= value after "+this->quantity_string()+" 2nd amt "+amt.quantity_string());
   return *this;
 }
 
@@ -629,7 +629,10 @@ void amount_t::in_place_round()
    {
    commodity_t &comm=this->commodity();
    if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
-        {in_place_roundto(comm.custom_precision());DEBUG("amount.parse","amount.cc:in place round commodity "+ lexical_cast<string>(comm)+" value "+lexical_cast<string>(this->quantity_string()));}
+        {
+        in_place_roundto(comm.custom_precision());
+        DEBUG("amount.parse", "amount.cc:in place round commodity "+ lexical_cast<string>(comm)+" value "+this->quantity_string());
+        }
 
    }
   _dup();
@@ -849,7 +852,7 @@ bool amount_t::is_zero() const
     throw_(amount_error, _("Cannot determine if an uninitialized amount is zero"));
 
   if (has_commodity()) {
-    DEBUG("amount.parse","amount.cc: is_zero prec "+lexical_cast<string>(precision()) + " quant string  "+this->quantity_string());
+    DEBUG("amount.parse", "amount.cc: is_zero");
     if (keep_precision() || quantity->prec <= commodity().precision()) {
       return is_realzero();
     }
@@ -1246,7 +1249,7 @@ bool amount_t::parse(std::istream& in, const parse_flags_t& flags)
   }
 
   VERIFY(valid());
-  DEBUG("amount.parse","amount.cc: parse");
+  DEBUG("amount.parse", "amount.cc: parse");
   return true;
 }
 
@@ -1277,7 +1280,7 @@ void amount_t::print(std::ostream& _out, const uint_least8_t flags) const
     _out << "<null>";
     return;
   }
-  DEBUG("amount.parse","amount.cc:print");
+  DEBUG("amount.parse", "amount.cc:print");
   std::ostringstream out;
 
   commodity_t& comm(commodity());

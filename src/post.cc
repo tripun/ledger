@@ -185,7 +185,7 @@ namespace {
 
   value_t get_amount(post_t& post)
   {
-   DEBUG("amount.parse","post.cc:get_amount");
+   DEBUG("amount.parse", "post.cc:get_amount");
     if (post.has_xdata() && post.xdata().has_flags(POST_EXT_COMPOUND))
       return post.xdata().compound_value;
     else if (post.amount.is_null())
@@ -418,7 +418,10 @@ expr_t::ptr_op_t post_t::lookup(const symbol_t::kind_t kind,
   switch (name[0]) {
   case 'a':
     if (name[1] == '\0' || name == "amount")
-      {DEBUG("amount.parse","post.cc:get_amount wrapper in lookup");return WRAP_FUNCTOR(get_wrapper<&get_amount>);}
+      {
+      DEBUG("amount.parse", "post.cc:get_amount wrapper in lookup");
+      return WRAP_FUNCTOR(get_wrapper<&get_amount>);
+      }
     else if (name == "account")
       return WRAP_FUNCTOR(get_account);
     else if (name == "account_base")

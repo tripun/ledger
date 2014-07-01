@@ -77,7 +77,11 @@ balance_t& balance_t::operator+=(const amount_t& amt)
     return *this;
   amounts_map::iterator i = amounts.find(&amt.commodity());
   if (i != amounts.end())
-   { DEBUG("amount.parse","balance.cc: amount added, value before "+lexical_cast<string>(i->second.to_double()));i->second += amt;DEBUG("amount.parse","balance.cc: amount added, value after "+lexical_cast<string>(i->second.to_double()));}
+   {
+   DEBUG("amount.parse", "balance.cc: amount added, value before "+i->second.quantity_string());
+   i->second += amt;
+   DEBUG("amount.parse", "balance.cc: amount added, value after "+i->second.quantity_string());
+   }
   else
     amounts.insert(amounts_map::value_type(&amt.commodity(), amt));
 

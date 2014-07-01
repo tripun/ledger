@@ -614,7 +614,7 @@ value_t account_t::amount(const optional<expr_t&>& expr) const
       }
       xdata_->self_details.last_reported_post = i;
     }
- DEBUG("amount.parse","account.cc: total ");
+ DEBUG("amount.parse", "account.cc: total ");
     return xdata_->self_details.total;
   } else {
     return NULL_VALUE;

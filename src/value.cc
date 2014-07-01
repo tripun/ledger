@@ -201,12 +201,12 @@ long value_t::to_long() const
 amount_t value_t::to_amount() const
 {
   if (is_amount()) {
-    DEBUG("amount.parse","value.cc:to_amount(): amount is set");
+    DEBUG("amount.parse", "value.cc:to_amount(): amount is set");
     return as_amount();
   } else {
     value_t temp(*this);
     temp.in_place_cast(AMOUNT);
-    DEBUG("amount.parse","value.cc:to_amount(): amount not set,casted");
+    DEBUG("amount.parse", "value.cc:to_amount(): amount not set,casted");
     return temp.as_amount();
   }
 }
@@ -753,7 +753,7 @@ value_t& value_t::operator/=(const value_t& val)
 
 bool value_t::is_equal_to(const value_t& val) const
 {
-  DEBUG("amount.parse","value.cc:is_equal_to(): type check");
+  DEBUG("amount.parse", "value.cc:is_equal_to(): type check");
   switch (type()) {
   case VOID:
     return val.type() == VOID;

@@ -305,11 +305,11 @@ void anonymize_posts::operator()(post_t& post)
 void calc_posts::operator()(post_t& post)
 {
   post_t::xdata_t& xdata(post.xdata());
-
   if (last_post) {
     assert(last_post->has_xdata());
     if (calc_running_total)
       xdata.total = last_post->xdata().total;
+      DEBUG("amount.parse", "filters.cc:calc_posts");
     xdata.count = last_post->xdata().count + 1;
   } else {
     xdata.count = 1;
