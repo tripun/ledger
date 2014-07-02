@@ -223,6 +223,7 @@ void commodity_pool_t::exchange(commodity_t&      commodity,
                                 const amount_t&   per_unit_cost,
                                 const datetime_t& moment)
 {
+  DEBUG("amount.parse", "pool.cc: void exchange");
   DEBUG("commodity.prices.add", "exchanging commodity " << commodity
         << " at per unit cost " << per_unit_cost << " on " << moment);
 
@@ -241,6 +242,7 @@ commodity_pool_t::exchange(const amount_t&             amount,
                            const optional<datetime_t>& moment,
                            const optional<string>&     tag)
 {
+  DEBUG("amount.parse", "pool.cc: cost_breakdown_t exchange cost comm " << cost.commodity() << " amount comm " << amount.commodity());
   DEBUG("commodity.prices.add", "exchange: " << amount << " for " << cost);
   DEBUG("commodity.prices.add", "exchange: is-per-unit   = " << is_per_unit);
 #if DEBUG_ON

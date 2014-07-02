@@ -445,20 +445,21 @@ amount_t& amount_t::operator+=(const amount_t& amt)
 
   _dup();
   if(has_commodity())  {
-  commodity_t &comm = this->commodity();
-   if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
+  commodity_t &comm=this->commodity();
+   if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
         in_place_roundto(comm.custom_precision());
+        DEBUG("amount.parse", "amount.cc:in place round commodity "+ lexical_cast<string>(comm)+" value "+this->quantity_string());
+        }
    }
-
   if(amt.has_commodity())  {
-  commodity_t &comm = amt.commodity();
+  commodity_t &comm=amt.commodity();
    if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
         {
         amount_t temp(amt);
         temp.in_place_roundto(comm.custom_precision());
+        DEBUG("amount.parse", "amount.cc:in place round commodity "+ lexical_cast<string>(comm)+" value "+amt.quantity_string());
         }
    }
-
   mpq_add(MP(quantity), MP(quantity), MP(amt.quantity));
 
   if (has_commodity() == amt.has_commodity())
@@ -1294,7 +1295,6 @@ void amount_t::print(std::ostream& _out, const uint_least8_t flags) const
     _out << "<null>";
     return;
   }
-  DEBUG("amount.parse", "amount.cc:print");
   std::ostringstream out;
 
   commodity_t& comm(commodity());
