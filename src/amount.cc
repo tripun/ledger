@@ -444,6 +444,20 @@ amount_t& amount_t::operator+=(const amount_t& amt)
   }
 
   _dup();
+  if(has_commodity())  {
+  commodity_t &comm = this->commodity();
+   if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
+        in_place_roundto(comm.custom_precision());
+   }
+
+  if(amt.has_commodity())  {
+  commodity_t &comm = amt.commodity();
+   if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
+        {
+        amount_t temp(amt);
+        temp.in_place_roundto(comm.custom_precision());
+        }
+   }
 
   mpq_add(MP(quantity), MP(quantity), MP(amt.quantity));
 
