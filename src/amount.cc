@@ -444,13 +444,6 @@ amount_t& amount_t::operator+=(const amount_t& amt)
   }
 
   _dup();
-  if(has_commodity())  {
-  commodity_t &comm=this->commodity();
-   if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
-        in_place_roundto(comm.custom_precision());
-        DEBUG("amount.parse", "amount.cc:in place round commodity "+ lexical_cast<string>(comm)+" value "+this->quantity_string());
-        }
-   }
   if(amt.has_commodity())  {
   commodity_t &comm=amt.commodity();
    if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
