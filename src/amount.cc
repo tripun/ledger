@@ -640,16 +640,6 @@ void amount_t::in_place_round()
   else if (! keep_precision())
     return;
 
-   if(this->has_commodity())
-   {
-   commodity_t &comm=this->commodity();
-   if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
-        {
-        in_place_roundto(comm.custom_precision());
-        DEBUG("amount.parse", "amount.cc:in place round commodity "+ lexical_cast<string>(comm)+" value "+this->quantity_string());
-        }
-
-   }
   _dup();
   set_keep_precision(false);
 }
