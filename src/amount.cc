@@ -427,7 +427,7 @@ bool amount_t::operator==(const amount_t& amt) const
 amount_t& amount_t::operator+=(const amount_t& amt)
 {
   VERIFY(amt.valid());
-  DEBUG("amount.parse", "amount.cc:+= value before "+this->quantity_string());
+  DEBUG("amount.parse", "amount.cc:+= this = " << this);
   if (! quantity || ! amt.quantity) {
     if (quantity)
       throw_(amount_error, _("Cannot add an uninitialized amount to an amount"));
@@ -453,7 +453,7 @@ amount_t& amount_t::operator+=(const amount_t& amt)
   if (has_commodity() == amt.has_commodity())
     if (quantity->prec < amt.quantity->prec)
       quantity->prec = amt.quantity->prec;
-    DEBUG("amount.parse", "amount.cc:+= value after "+this->quantity_string()+" 2nd amt "+amt.quantity_string());
+    DEBUG("amount.parse", "amount.cc:+= value  "+this->quantity_string()+" 2nd amt "+amt.quantity_string());
   return *this;
 }
 
@@ -628,12 +628,13 @@ void amount_t::in_place_round()
   else if (! keep_precision())
     return;
 
-  if(has_commodity()) {
-  commodity_t& comm=commodity();
-  if(comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
-    in_place_roundto(comm.custom_precision());
+  if (has_commodity()) {
+   commodity_t& comm = commodity();
+   if (comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
+     in_place_roundto(comm.custom_precision());
   }
 
+DEBUG("amount.parse","amount.cc: in_place_round this =" << this);
   _dup();
   set_keep_precision(false);
 }
