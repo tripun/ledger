@@ -44,7 +44,8 @@
   :group 'ledger-reconcile)
 
 (defcustom ledger-narrow-on-reconcile t
-  "If t, limit transactions shown in main buffer to those matching the reconcile regex."
+  "If t, limit transactions shown in main buffer to those
+matching the reconcile regex."
   :type 'boolean
   :group 'ledger-reconcile)
 
@@ -55,7 +56,8 @@ Then that transaction will be shown in its source buffer."
   :group 'ledger-reconcile)
 
 (defcustom ledger-reconcile-force-window-bottom nil
-  "If t make the reconcile window appear along the bottom of the register window and resize."
+  "If t make the reconcile window appear along the bottom of the
+register window and resize."
   :type 'boolean
   :group 'ledger-reconcile)
 
@@ -75,8 +77,26 @@ reconcile-finish will mark all pending posting cleared."
   :type 'string
   :group 'ledger-reconcile)
 
+(defcustom ledger-reconcile-buffer-header "Reconciling account %s\n\n"
+	"Default header string for the reconcile buffer.  If non-nil,
+	the name of the account being reconciled will be substituted
+	into the '%s'.  If nil, no header willbe displayed."
+	:type 'string
+	:group 'ledger-reconcile)
+
+(defcustom ledger-reconcile-buffer-line-format "%(date)s %-4(code)s %-50(payee)s %-30(account)s %15(amount)s\n"
+	"Format string for the ledger reconcile posting
+format. Available fields are date, status, code, payee, account,
+amount.  The format for each field is %WIDTH(FIELD), WIDTH can be
+preced by a minus sign which mean to left justify and pad the
+field."
+	:type 'string
+	:group 'ledger-reconcile)
+
 (defcustom ledger-reconcile-sort-key "(0)"
-  "Default key for sorting reconcile buffer. Possible values are '(date)', '(amount)', '(payee)'. For no sorting, i.e. using ledger file order, use '(0)'."
+  "Default key for sorting reconcile buffer. Possible values are
+'(date)', '(amount)', '(payee)'. For no sorting, i.e. using
+ledger file order, use '(0)'."
   :type 'string
   :group 'ledger-reconcile)
 
@@ -298,6 +318,51 @@ POSTING is used in `ledger-clear-whole-transactions' is nil."
          (nth 1 emacs-xact)  ;; return line-no of xact
        (nth 0 posting))))) ;; return line-no of posting
 
+(defun ledger-reconcile-compile-format-string (fstr)
+	"return a function that implements the format string in fstr"
+	(let (fields
+				(start 0))
+		(while (string-match "(\\(.*?\\))" fstr start)
+			(setq fields (cons (intern (match-string 1 fstr)) fields))
+			(setq start (match-end 0)))
+		(setq fields (list* 'format (replace-regexp-in-string "(.*?)" "" fstr) (nreverse fields)))
+		`(lambda (date code status payee account amount)
+			 ,fields)))
+
+
+
+(defun ledger-reconcile-format-posting (beg where fmt date code status payee account amount)
+	(insert (funcall fmt date code status payee account amount))
+
+																				; Set face depending on cleared status
+	(if status
+						(if (eq status 'pending)
+								(set-text-properties beg (1- (point))
+																		 (list 'face 'ledger-font-reconciler-pending-face
+																					 'where where))
+							(set-text-properties beg (1- (point))
+																	 (list 'face 'ledger-font-reconciler-cleared-face
+																				 'where where)))
+		(set-text-properties beg (1- (point))
+												 (list 'face 'ledger-font-reconciler-uncleared-face
+																		 'where where))))
+
+(defun ledger-reconcile-format-xact (xact fmt)
+	(let ((date-format (or (cdr (assoc "date-format" ledger-environment-alist))
+													ledger-default-date-format)))
+		(dolist (posting (nthcdr 5 xact))
+			(let ((beg (point))
+						(where (ledger-marker-where-xact-is xact posting)))
+				(ledger-reconcile-format-posting beg
+																				 where
+																				 fmt
+																				 (format-time-string date-format (nth 2 xact))  ; date
+																				 (if (nth 3 xact) (nth 3 xact) "")  ; code
+																				 (nth 3 posting)  ; status
+																				 (nth 4 xact)  ; payee
+																				 (nth 1 posting)  ; account
+																				 (nth 2 posting))))))  ; amount
+
 (defun ledger-do-reconcile (&optional sort)
   "Return the number of uncleared transactions in the account and display them in the *Reconcile* buffer."
   (let* ((buf ledger-buf)
@@ -314,33 +379,13 @@ POSTING is used in `ledger-clear-whole-transactions' is nil."
               (goto-char (point-min))
               (unless (eobp)
                 (if (looking-at "(")
-                    (read (current-buffer)))))))) ;current-buffer is the *temp* created above
+                    (read (current-buffer)))))))  ;current-buffer is the *temp* created above
+				 (fmt (ledger-reconcile-compile-format-string ledger-reconcile-buffer-line-format)))
     (if (and ledger-success (> (length xacts) 0))
-        (let ((date-format (or (cdr (assoc "date-format" ledger-environment-alist))
-                               ledger-default-date-format)))
+        (progn
+					(insert (format ledger-reconcile-buffer-header account))
           (dolist (xact xacts)
-            (dolist (posting (nthcdr 5 xact))
-              (let ((beg (point))
-                    (where (ledger-marker-where-xact-is xact posting)))
-                (insert (format "%s %-4s %-50s %-30s %15s\n"
-                                (format-time-string date-format (nth 2 xact))
-                                (if (nth 3 xact)
-                                    (nth 3 xact)
-                                  "")
-                                (truncate-string-to-width
-                                 (nth 4 xact) 49)
-                                (nth 1 posting) (nth 2 posting)))
-                (if (nth 3 posting)
-                    (if (eq (nth 3 posting) 'pending)
-                        (set-text-properties beg (1- (point))
-                                             (list 'face 'ledger-font-reconciler-pending-face
-                                                   'where where))
-                      (set-text-properties beg (1- (point))
-                                           (list 'face 'ledger-font-reconciler-cleared-face
-                                                 'where where)))
-                  (set-text-properties beg (1- (point))
-                                       (list 'face 'ledger-font-reconciler-uncleared-face
-                                             'where where))))  ))
+            (ledger-reconcile-format-xact xact fmt))
           (goto-char (point-max))
           (delete-char -1)) ;gets rid of the extra line feed at the bottom of the list
       (if ledger-success
@@ -348,7 +393,7 @@ POSTING is used in `ledger-clear-whole-transactions' is nil."
         (insert "Ledger has reported a problem.  Check *Ledger Error* buffer.")))
     (goto-char (point-min))
     (set-buffer-modified-p nil)
-    (toggle-read-only t)
+    (setq buffer-read-only t)
 
     (ledger-reconcile-ensure-xacts-visible)
     (length xacts)))
@@ -362,10 +407,10 @@ moved and recentered.  If they aren't strange things happen."
   (let ((recon-window (get-buffer-window (get-buffer ledger-recon-buffer-name))))
     (when recon-window
       (fit-window-to-buffer recon-window)
-      (with-current-buffer buf
+      (with-current-buffer ledger-buf
         (add-hook 'kill-buffer-hook 'ledger-reconcile-quit nil t)
-        (if (get-buffer-window buf)
-            (select-window (get-buffer-window buf)))
+        (if (get-buffer-window ledger-buf)
+            (select-window (get-buffer-window ledger-buf)))
         (goto-char (point-max))
         (recenter -1))
       (select-window recon-window)
@@ -406,7 +451,7 @@ moved and recentered.  If they aren't strange things happen."
           (when (not (eq buf rbuf))
             ;; called from some other ledger-mode buffer
             (ledger-reconcile-quit-cleanup)
-            (set 'ledger-buf buf)) ;; should already be buffer-local
+            (setq ledger-buf buf)) ;; should already be buffer-local
 
           (unless (get-buffer-window rbuf)
             (ledger-reconcile-open-windows buf rbuf)))
@@ -448,6 +493,7 @@ moved and recentered.  If they aren't strange things happen."
   (let ((map (make-sparse-keymap)))
     (define-key map [(control ?m)] 'ledger-reconcile-visit)
     (define-key map [return] 'ledger-reconcile-visit)
+    (define-key map [(control ?x) (control ?s)] 'ledger-reconcile-save)
     (define-key map [(control ?l)] 'ledger-reconcile-refresh)
     (define-key map [(control ?c) (control ?c)] 'ledger-reconcile-finish)
     (define-key map [? ] 'ledger-reconcile-toggle)

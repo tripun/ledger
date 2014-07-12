@@ -93,8 +93,7 @@
 
 (defun ledger-read-account-with-prompt (prompt)
   (let* ((context (ledger-context-at-point))
-         (default (if (and (eq (ledger-context-line-type context) 'acct-transaction)
-                           (eq (ledger-context-current-field context) 'account))
+         (default (if (eq (ledger-context-line-type context) 'acct-transaction)
                       (regexp-quote (ledger-context-field-value context 'account))
                     nil)))
     (ledger-read-string-with-default prompt default)))
@@ -222,6 +221,7 @@ With a prefix argument, remove the effective date. "
 (defun ledger-mode-clean-buffer ()
   "indent, remove multiple linfe feeds and sort the buffer"
   (interactive)
+	(untabify (point-min) (point-max))
   (ledger-sort-buffer)
   (ledger-post-align-postings (point-min) (point-max))
   (ledger-mode-remove-extra-lines))
