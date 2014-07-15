@@ -427,7 +427,7 @@ bool amount_t::operator==(const amount_t& amt) const
 amount_t& amount_t::operator+=(const amount_t& amt)
 {
   VERIFY(amt.valid());
-  DEBUG("value.parse", "amount.cc:+= this = " << this << " amount "<< quantity_string() << " " << commodity().name());
+  DEBUG("value.parse", "amount.cc:+= this = " << this << " amount "<< quantity_string() << " " << commodity());
   if (! quantity || ! amt.quantity) {
     if (quantity)
       throw_(amount_error, _("Cannot add an uninitialized amount to an amount"));
@@ -446,10 +446,10 @@ amount_t& amount_t::operator+=(const amount_t& amt)
   _dup();
 
   mpq_add(MP(quantity), MP(quantity), MP(amt.quantity));
-
+/*
  if (has_commodity() && commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION))
     in_place_roundto(commodity().custom_precision());
-
+*/
   if (has_commodity() == amt.has_commodity())
     if (quantity->prec < amt.quantity->prec)
       quantity->prec = amt.quantity->prec;
@@ -479,10 +479,10 @@ amount_t& amount_t::operator-=(const amount_t& amt)
   _dup();
 
   mpq_sub(MP(quantity), MP(quantity), MP(amt.quantity));
-
+/*
  if (has_commodity() && commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION))
     in_place_roundto(commodity().custom_precision());
-
+*/
   if (has_commodity() == amt.has_commodity())
     if (quantity->prec < amt.quantity->prec)
       quantity->prec = amt.quantity->prec;
@@ -630,13 +630,13 @@ void amount_t::in_place_round()
     throw_(amount_error, _("Cannot set rounding for an uninitialized amount"));
   else if (! keep_precision())
     return;
-
+/*
   if (has_commodity()) {
    commodity_t& comm = commodity();
    if (comm.has_flags(COMMODITY_SET_CUSTOM_PRECISION))
      in_place_roundto(comm.custom_precision());
   }
-
+*/
 
   _dup();
   set_keep_precision(false);

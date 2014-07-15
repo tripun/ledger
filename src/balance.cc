@@ -195,6 +195,7 @@ balance_t::value(const datetime_t&   moment,
   balance_t temp;
   bool      resolved = false;
 
+  DEBUG("amount.parse", " balance.cc:198: value called ");
   foreach (const amounts_map::value_type& pair, amounts) {
     if (optional<amount_t> val = pair.second.value(moment, in_terms_of)) {
       temp += *val;

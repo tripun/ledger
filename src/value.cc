@@ -317,6 +317,7 @@ value_t value_t::number() const
 
 value_t& value_t::operator+=(const value_t& val)
 {
+DEBUG("value.parse", "value.cc:320: += ");
   if (is_string()) {
     if (val.is_string())
       as_string_lval() += val.as_string();
@@ -410,7 +411,7 @@ value_t& value_t::operator+=(const value_t& val)
         in_place_cast(BALANCE);
         return *this += val;
       } else {
-        DEBUG("value.parse", " value.cc:line 413 amount: " << as_amount().quantity_string() << " commodity " << as_amount().commodity().name() );
+        DEBUG("value.parse", " value.cc:line 413 amount: " << as_amount().quantity_string() << " commodity " << as_amount().commodity() );
         if(as_amount().has_commodity() && as_amount().commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
         amount_t temp(as_amount());
         temp.in_place_roundto(as_amount().commodity().custom_precision());
@@ -436,7 +437,7 @@ value_t& value_t::operator+=(const value_t& val)
       as_balance_lval() += val.to_amount();
       return *this;
     case AMOUNT:
-    DEBUG("amount.parse", "value.cc:balance:amount " << val.as_amount().quantity_string());
+    DEBUG("amount.parse", "value.cc:440: balance:amount " << val.as_amount().quantity_string());
       as_balance_lval() += val.as_amount();
       return *this;
     case BALANCE:
@@ -1613,6 +1614,7 @@ value_t value_t::abs() const
 
 void value_t::in_place_round()
 {
+  DEBUG("value.parse", "value.cc:1620:in_place_round ");
   switch (type()) {
   case INTEGER:
     return;
