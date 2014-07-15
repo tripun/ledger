@@ -427,7 +427,7 @@ bool amount_t::operator==(const amount_t& amt) const
 amount_t& amount_t::operator+=(const amount_t& amt)
 {
   VERIFY(amt.valid());
-  DEBUG("amount.parse", "amount.cc:+= this = " << this);
+  DEBUG("value.parse", "amount.cc:+= this = " << this << " amount "<< quantity_string() << " " << commodity().name());
   if (! quantity || ! amt.quantity) {
     if (quantity)
       throw_(amount_error, _("Cannot add an uninitialized amount to an amount"));
@@ -637,7 +637,7 @@ void amount_t::in_place_round()
      in_place_roundto(comm.custom_precision());
   }
 
-DEBUG("amount.parse","amount.cc: in_place_round this =" << this);
+
   _dup();
   set_keep_precision(false);
 }
