@@ -1613,12 +1613,10 @@ value_t value_t::abs() const
 
 void value_t::in_place_round()
 {
-DEBUG("value.parse", "value.cc:1620:in_place_round ");
   switch (type()) {
   case INTEGER:
     return;
   case AMOUNT:
-    DEBUG("value.parse", "value.cc:1620:in_place_round amount " << as_amount_lval().quantity_string() << " " << as_amount_lval().commodity().name());
     as_amount_lval().in_place_round();
     return;
   case BALANCE:
