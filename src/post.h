@@ -270,6 +270,11 @@ private:
 #endif // HAVE_BOOST_SERIALIZATION
 };
 
+struct compare_post_by_commodity {
+  bool operator()(const post_t * left, const post_t * right) const;
+
+};
+
 class journal_t;
 void extend_post(post_t& post, journal_t& journal);
 void put_post(property_tree::ptree& pt, const post_t& post);

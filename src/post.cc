@@ -40,6 +40,12 @@
 
 namespace ledger {
 
+bool compare_post_by_commodity::operator()(const post_t * left, const post_t * right) const
+{
+
+  return  ledger::commodity_compare() ( &(left->amount.commodity()), &(right->amount.commodity()) );
+}
+
 bool post_t::has_tag(const string& tag, bool inherit) const
 {
   if (item_t::has_tag(tag))

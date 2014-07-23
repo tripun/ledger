@@ -62,8 +62,17 @@ balance_t::balance_t(const long val)
 
 balance_t& balance_t::operator+=(const balance_t& bal)
 {
-  foreach (const amounts_map::value_type& pair, bal.amounts)
-    *this += pair.second;
+  DEBUG("value.parse", "balance.cc:65  bal+bal fn");
+  std::multimap<commodity_t*, amount_t, ledger::commodity_compare> tmp_amounts ;
+  tmp_amounts.insert(bal.amounts.begin(), bal.amounts.end());
+
+  foreach(const amounts_map::value_type& pair2, tmp_amounts) {
+    amounts_map::const_iterator pair =  bal.amounts.find(pair2.first);
+  // foreach (const amounts_map::value_type& pair, bal.amounts) {
+    DEBUG("value.parse", "balance.cc: bal arg amount " << pair->second.quantity_string()
+    << " " << pair->second.commodity());
+    *this += pair->second;
+  }
 
   return *this;
 }
@@ -73,17 +82,21 @@ balance_t& balance_t::operator+=(const amount_t& amt)
   if (amt.is_null())
     throw_(balance_error,
            _("Cannot add an uninitialized amount to a balance"));
+  DEBUG("value.parse", "balance.cc:79 bal+amt fn");
   if (amt.is_realzero())
     return *this;
   amounts_map::iterator i = amounts.find(&amt.commodity());
   if (i != amounts.end())
    {
-   DEBUG("amount.parse", "balance.cc: amount added, value before "+i->second.quantity_string());
+   DEBUG("amount.parse", "balance.cc: amount added, value before " << i->second.quantity_string()
+   << " arg amount = " << amt.quantity_string() );
    i->second += amt;
-   DEBUG("amount.parse", "balance.cc: amount added, value after "+i->second.quantity_string());
    }
-  else
+  else {
+    DEBUG("value.parse", "balance.cc: bal+amt else arg amount " << amt.quantity_string()
+    << " " << amt.commodity());
     amounts.insert(amounts_map::value_type(&amt.commodity(), amt));
+    }
 
 
   return *this;
@@ -101,7 +114,7 @@ balance_t& balance_t::operator-=(const amount_t& amt)
   if (amt.is_null())
     throw_(balance_error,
            _("Cannot subtract an uninitialized amount from a balance"));
-
+  DEBUG("value.parse", "balance.cc bal-amt fn");
   if (amt.is_realzero())
     return *this;
 
@@ -195,15 +208,26 @@ balance_t::value(const datetime_t&   moment,
   balance_t temp;
   bool      resolved = false;
 
-  DEBUG("amount.parse", " balance.cc:198: value called ");
-  foreach (const amounts_map::value_type& pair, amounts) {
-    if (optional<amount_t> val = pair.second.value(moment, in_terms_of)) {
-      temp += *val;
-      resolved = true;
-    } else {
-      temp += pair.second;
-    }
+  DEBUG("amount.parse", " balance.cc:198: value fn  start");
+  std::multimap<commodity_t*, amount_t, ledger::commodity_compare> tmp_amounts ;
+  tmp_amounts.insert(amounts.begin(), amounts.end());
+
+  foreach(const amounts_map::value_type& pair2, tmp_amounts) {
+    amounts_map::const_iterator pair =  amounts.find(pair2.first);
+    DEBUG("value.parse", "balance.cc: value fn in loop " << pair->second.commodity());
+
+    //foreach (const amounts_map::value_type& pair, tmp_amounts) {
+      if (optional<amount_t> val = pair->second.value(moment, in_terms_of)) {
+        DEBUG("value.parse", "balance.cc: value fn if value " << (*val).commodity());
+        temp += *val;
+        resolved = true;
+      } else {
+        DEBUG("value.parse", "balance.cc: value fn else add " << pair->second.commodity());
+        temp += pair->second;
+      }
   }
+
+  DEBUG("amount.parse", " balance.cc:198: value fn  end");
   return resolved ? temp : optional<balance_t>();
 }
 
@@ -238,15 +262,18 @@ balance_t
 balance_t::strip_annotations(const keep_details_t& what_to_keep) const
 {
   balance_t temp;
-
-  foreach (const amounts_map::value_type& pair, amounts)
+  DEBUG("value.parse", "balance.cc:241 strip annotation fn");
+  foreach (const amounts_map::value_type& pair, amounts)  {
+    DEBUG("value.parse", "balance.cc: strip amount " << pair.second.quantity_string());
     temp += pair.second.strip_annotations(what_to_keep);
+  }
 
   return temp;
 }
 
 void balance_t::map_sorted_amounts(function<void(const amount_t&)> fn) const
 {
+  DEBUG("amount.parse", "balance.cc: map sorter");
   if (! amounts.empty()) {
     if (amounts.size() == 1) {
       const amount_t& amount((*amounts.begin()).second);

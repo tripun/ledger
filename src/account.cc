@@ -127,6 +127,8 @@ account_t * account_t::find_account_re(const string& regexp)
 
 void account_t::add_post(post_t * post)
 {
+  DEBUG("amount.parse", "account.cc: add_post " << name << " "
+  << post->amount.commodity() );
   posts.push_back(post);
 
   // Adding a new post changes the possible totals that may have been
@@ -583,22 +585,48 @@ void account_t::clear_xdata()
 
 value_t account_t::amount(const optional<expr_t&>& expr) const
 {
+  DEBUG("amount.parse", "account.cc: amount fn start " << name );
   if (xdata_ && xdata_->has_flags(ACCOUNT_EXT_VISITED)) {
-    posts_list::const_iterator i;
+    posts_list::const_iterator i, j, k , l;
     if (xdata_->self_details.last_post)
       i = *xdata_->self_details.last_post;
     else
       i = posts.begin();
 
-    for (; i != posts.end(); i++) {
-      if ((*i)->xdata().has_flags(POST_EXT_VISITED)) {
+  l = i;
+  std::vector<post_t*> post_array;
+
+  for(k = i; k != posts.end(); k++ )
+    post_array.push_back(*k);
+
+  std::stable_sort(post_array.begin(), post_array.end(), ledger::compare_post_by_commodity());
+  DEBUG("amount.parse", "account.cc: amount sorting done ");
+  posts_list sorted_posts;
+  std::copy( post_array.begin(), post_array.end(), std::back_inserter( sorted_posts ) );
+  j = sorted_posts.begin();
+
+  for (; j != sorted_posts.end(); j++) {
+    i = posts.end();
+    i = std::find(l, posts.end(), *j);
+    DEBUG("amount.parse", "account.cc: amount in loop ");
+
+    if ( i != posts.end()) {
+    if ((*i)->xdata().has_flags(POST_EXT_VISITED)) {
         if (! (*i)->xdata().has_flags(POST_EXT_CONSIDERED)) {
+            std::string check = "no";
+            commodity_t& comm = (*i)->amount.commodity();
+            DEBUG("amount.parse", "account.cc:post amount " <<
+            comm.symbol() << " " << check );
+
           (*i)->add_to_value(xdata_->self_details.total, expr);
           (*i)->xdata().add_flags(POST_EXT_CONSIDERED);
         }
       }
       xdata_->self_details.last_post = i;
     }
+  }
+
+  DEBUG("amount.parse", "account.cc: amount fn add flags ");
 
     if (xdata_->self_details.last_reported_post)
       i = *xdata_->self_details.last_reported_post;
@@ -608,15 +636,19 @@ value_t account_t::amount(const optional<expr_t&>& expr) const
     for (; i != xdata_->reported_posts.end(); i++) {
       if ((*i)->xdata().has_flags(POST_EXT_VISITED)) {
         if (! (*i)->xdata().has_flags(POST_EXT_CONSIDERED)) {
+          DEBUG("amount.parse", "account.cc: amount fn reported add to val");
           (*i)->add_to_value(xdata_->self_details.total, expr);
           (*i)->xdata().add_flags(POST_EXT_CONSIDERED);
         }
       }
       xdata_->self_details.last_reported_post = i;
     }
- DEBUG("amount.parse", "account.cc: total ");
+
+   DEBUG("amount.parse", "account.cc: amount fn end ");
     return xdata_->self_details.total;
   } else {
+
+    DEBUG("amount.parse", "account.cc: amount fn end null value ");
     return NULL_VALUE;
   }
 }
