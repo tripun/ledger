@@ -317,7 +317,7 @@ value_t value_t::number() const
 
 value_t& value_t::operator+=(const value_t& val)
 {
-DEBUG("value.parse", "value.cc:320: += ");
+DEBUG("value.parse", "value.cc:320: +=  type " <<  type() << " val type " << val.type());
   if (is_string()) {
     if (val.is_string())
       as_string_lval() += val.as_string();
@@ -409,13 +409,17 @@ DEBUG("value.parse", "value.cc:320: += ");
     case AMOUNT:
       if (as_amount().commodity() != val.as_amount().commodity()) {
         in_place_cast(BALANCE);
+        DEBUG("value.parse", " value.cc: +=amount: "
+        << " val amount " << val.as_amount().quantity_string() <<
+        " "<< val.as_amount().commodity() );
         return *this += val;
       } else {
-        DEBUG("value.parse", " value.cc:line 413 amount: " << as_amount().quantity_string() << " commodity " << as_amount().commodity() );
+        DEBUG("value.parse", " value.cc:line 413 amount: " << as_amount().quantity_string()
+        << " commodity " << as_amount().commodity() );
         if(as_amount().has_commodity() && as_amount().commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
         amount_t temp(as_amount());
         temp.in_place_roundto(as_amount().commodity().custom_precision());
-         DEBUG("amount.parse", "value.cc: amount:amount this = " << &as_amount());
+        DEBUG("amount.parse", "value.cc: amount:amount this = " << &as_amount());
         }
         as_amount_lval() += val.as_amount();
         return *this;
@@ -1423,21 +1427,25 @@ bool value_t::is_zero() const
 value_t value_t::value(const datetime_t&   moment,
                        const commodity_t * in_terms_of) const
 {
+  DEBUG("value.parse", "value.cc:1425 value fn type " << type());
   switch (type()) {
   case INTEGER:
     return NULL_VALUE;
 
   case AMOUNT:
+    DEBUG("value.parse", "value.cc:1425 value fn AMOUNT ");
     if (optional<amount_t> val = as_amount().value(moment, in_terms_of))
       return *val;
     return NULL_VALUE;
 
   case BALANCE:
+    DEBUG("value.parse", "value.cc:1425 value fn BALANCE");
     if (optional<balance_t> bal = as_balance().value(moment, in_terms_of))
       return *bal;
     return NULL_VALUE;
 
   case SEQUENCE: {
+    DEBUG("value.parse", "value.cc:1425 value fn SEQUENCE");
     value_t temp;
     foreach (const value_t& value, as_sequence())
       temp.push_back(value.value(moment, in_terms_of));
