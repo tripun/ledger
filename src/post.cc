@@ -629,6 +629,7 @@ bool post_t::valid() const
 
 void post_t::add_to_value(value_t& value, const optional<expr_t&>& expr) const
 {
+  DEBUG("amount.parse", "post.cc:add to value start");
   if (xdata_ && xdata_->has_flags(POST_EXT_COMPOUND)) {
     if (! xdata_->compound_value.is_null())
       add_or_set_value(value, xdata_->compound_value);

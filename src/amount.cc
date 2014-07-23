@@ -819,6 +819,8 @@ amount_t::value(const datetime_t&   moment,
         amount_t price(point->price);
         price.multiply(*this, true);
         price.in_place_round();
+        DEBUG("value.parse", "amount.cc:822 value fn amount " << price.quantity_string()
+        << "this " << quantity_string() << commodity() );
         return price;
       }
     }
