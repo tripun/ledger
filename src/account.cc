@@ -593,38 +593,24 @@ value_t account_t::amount(const optional<expr_t&>& expr) const
     else
       i = posts.begin();
 
-  l = i;
-  std::vector<post_t*> post_array;
+    posts_list sorted_posts(i, posts.end());
+    sorted_posts.sort(ledger::compare_post_by_commodity());
+    DEBUG("amount.parse", "account.cc: amount sorting done ");
+    i = sorted_posts.begin();
 
-  for(k = i; k != posts.end(); k++ )
-    post_array.push_back(*k);
-
-  std::stable_sort(post_array.begin(), post_array.end(), ledger::compare_post_by_commodity());
-  DEBUG("amount.parse", "account.cc: amount sorting done ");
-  posts_list sorted_posts;
-  std::copy( post_array.begin(), post_array.end(), std::back_inserter( sorted_posts ) );
-  j = sorted_posts.begin();
-
-  for (; j != sorted_posts.end(); j++) {
-    i = posts.end();
-    i = std::find(l, posts.end(), *j);
-    DEBUG("amount.parse", "account.cc: amount in loop ");
-
-    if ( i != posts.end()) {
-    if ((*i)->xdata().has_flags(POST_EXT_VISITED)) {
-        if (! (*i)->xdata().has_flags(POST_EXT_CONSIDERED)) {
-            std::string check = "no";
+    for (; i != sorted_posts.end(); i++) {
+      DEBUG("amount.parse", "account.cc: amount in loop ");
+      if ((*i)->xdata().has_flags(POST_EXT_VISITED)) {
+          if (! (*i)->xdata().has_flags(POST_EXT_CONSIDERED)) {
             commodity_t& comm = (*i)->amount.commodity();
             DEBUG("amount.parse", "account.cc:post amount " <<
-            comm.symbol() << " " << check );
-
-          (*i)->add_to_value(xdata_->self_details.total, expr);
-          (*i)->xdata().add_flags(POST_EXT_CONSIDERED);
+            comm.symbol());
+            (*i)->add_to_value(xdata_->self_details.total, expr);
+            (*i)->xdata().add_flags(POST_EXT_CONSIDERED);
+          }
         }
-      }
       xdata_->self_details.last_post = i;
     }
-  }
 
   DEBUG("amount.parse", "account.cc: amount fn add flags ");
 

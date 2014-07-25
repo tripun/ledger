@@ -66,12 +66,10 @@ balance_t& balance_t::operator+=(const balance_t& bal)
   std::multimap<commodity_t*, amount_t, ledger::commodity_compare> tmp_amounts ;
   tmp_amounts.insert(bal.amounts.begin(), bal.amounts.end());
 
-  foreach(const amounts_map::value_type& pair2, tmp_amounts) {
-    amounts_map::const_iterator pair =  bal.amounts.find(pair2.first);
-  // foreach (const amounts_map::value_type& pair, bal.amounts) {
-    DEBUG("value.parse", "balance.cc: bal arg amount " << pair->second.quantity_string()
-    << " " << pair->second.commodity());
-    *this += pair->second;
+  foreach(const amounts_map::value_type& pair, tmp_amounts) {
+    DEBUG("value.parse", "balance.cc: bal arg amount " << pair.second.quantity_string()
+    << " " << pair.second.commodity());
+    *this += pair.second;
   }
 
   return *this;
@@ -212,19 +210,16 @@ balance_t::value(const datetime_t&   moment,
   std::multimap<commodity_t*, amount_t, ledger::commodity_compare> tmp_amounts ;
   tmp_amounts.insert(amounts.begin(), amounts.end());
 
-  foreach(const amounts_map::value_type& pair2, tmp_amounts) {
-    amounts_map::const_iterator pair =  amounts.find(pair2.first);
-    DEBUG("value.parse", "balance.cc: value fn in loop " << pair->second.commodity());
-
-    //foreach (const amounts_map::value_type& pair, tmp_amounts) {
-      if (optional<amount_t> val = pair->second.value(moment, in_terms_of)) {
-        DEBUG("value.parse", "balance.cc: value fn if value " << (*val).commodity());
-        temp += *val;
-        resolved = true;
-      } else {
-        DEBUG("value.parse", "balance.cc: value fn else add " << pair->second.commodity());
-        temp += pair->second;
-      }
+  foreach(const amounts_map::value_type& pair, tmp_amounts) {
+    DEBUG("value.parse", "balance.cc: value fn in loop " << pair.second.commodity());
+    if (optional<amount_t> val = pair.second.value(moment, in_terms_of)) {
+      DEBUG("value.parse", "balance.cc: value fn if value " << (*val).commodity());
+      temp += *val;
+      resolved = true;
+    } else {
+      DEBUG("value.parse", "balance.cc: value fn else add " << pair.second.commodity());
+      temp += pair.second;
+    }
   }
 
   DEBUG("amount.parse", " balance.cc:198: value fn  end");
