@@ -1343,6 +1343,11 @@ void put_amount(property_tree::ptree& st, const amount_t& amt,
   st.put("quantity", amt.quantity_string());
 }
 
+bool amounts_map_compare::operator()(const commodity_t* left,
+                                      const commodity_t* right) const {
+   return (left->symbol().compare(right->symbol()) < 0);
+}
+
 #if HAVE_BOOST_SERIALIZATION
 
 template<class Archive>

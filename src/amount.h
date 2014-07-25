@@ -795,6 +795,11 @@ inline std::istream& operator>>(std::istream& in, amount_t& amt) {
 void put_amount(property_tree::ptree& pt, const amount_t& amt,
                 bool commodity_details = false);
 
+// simple struct to allow std::map to compare based on commodity
+struct amounts_map_compare {
+  bool operator() (const commodity_t* left, const commodity_t* right) const;
+
+};
 } // namespace ledger
 
 #endif // _AMOUNT_H
