@@ -272,7 +272,7 @@ private:
 };
 
 struct compare_post_by_commodity {
-  bool operator()(const post_t * left, const post_t * right) const;
+  bool operator()(const post_t* left, const post_t* right) const;
 
 };
 
