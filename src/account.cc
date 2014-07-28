@@ -593,7 +593,7 @@ value_t account_t::amount(const optional<expr_t&>& expr) const
     else
       i = posts.begin();
 
-    posts_list sorted_posts(i, posts.end());
+    posts_list sorted_posts(posts.begin(), posts.end());
     sorted_posts.sort(ledger::compare_post_by_commodity());
     DEBUG("amount.parse", "account.cc: amount sorting done ");
     i = sorted_posts.begin();
