@@ -593,12 +593,7 @@ value_t account_t::amount(const optional<expr_t&>& expr) const
     else
       i = posts.begin();
 
-    posts_list sorted_posts(posts.begin(), posts.end());
-    sorted_posts.sort(ledger::compare_post_by_commodity());
-    DEBUG("amount.parse", "account.cc: amount sorting done ");
-    i = sorted_posts.begin();
-
-    for (; i != sorted_posts.end(); i++) {
+    for (; i != posts.end(); i++) {
       DEBUG("amount.parse", "account.cc: amount in loop ");
       if ((*i)->xdata().has_flags(POST_EXT_VISITED)) {
           if (! (*i)->xdata().has_flags(POST_EXT_CONSIDERED)) {
