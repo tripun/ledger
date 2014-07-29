@@ -409,29 +409,30 @@ DEBUG("value.parse", "value.cc:320: +=  type " <<  type() << " val type " << val
     case AMOUNT:
       if (as_amount().commodity() != val.as_amount().commodity()) {
         in_place_cast(BALANCE);
-        DEBUG("value.parse", " value.cc: +=amount: "
+        DEBUG("value.parse", " value.cc: +=amount in place balance: "
         << " val amount " << val.as_amount().quantity_string() <<
         " "<< val.as_amount().commodity() );
         return *this += val;
       } else {
-        DEBUG("value.parse", " value.cc:line 413 amount: " << as_amount().quantity_string()
+        DEBUG("value.parse", " value.cc:else part case amount: " << as_amount().quantity_string()
         << " commodity " << as_amount().commodity() );
         if(as_amount().has_commodity() && as_amount().commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
         amount_t temp(as_amount());
         temp.in_place_roundto(as_amount().commodity().custom_precision());
-        DEBUG("amount.parse", "value.cc: amount:amount this = " << &as_amount());
+        DEBUG("amount.parse", "value.cc: amount:amount else round");
         }
         as_amount_lval() += val.as_amount();
       if(as_amount_lval().has_commodity() && as_amount_lval().commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
         amount_t temp(as_amount_lval());
         temp.in_place_roundto(as_amount_lval().commodity().custom_precision());
-        DEBUG("amount.parse", "value.cc: amount:amount this = " << &as_amount());
+        DEBUG("amount.parse", "value.cc: amount:amount else round 2 " << &as_amount());
         }
         return *this;
       }
 
     case BALANCE:
       in_place_cast(BALANCE);
+      DEBUG("amount.parse", "value.cc+=:amount case balance ");
       as_balance_lval() += val.as_balance();
       return *this;
 
