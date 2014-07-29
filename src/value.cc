@@ -422,6 +422,11 @@ DEBUG("value.parse", "value.cc:320: +=  type " <<  type() << " val type " << val
         DEBUG("amount.parse", "value.cc: amount:amount this = " << &as_amount());
         }
         as_amount_lval() += val.as_amount();
+      if(as_amount_lval().has_commodity() && as_amount_lval().commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
+        amount_t temp(as_amount_lval());
+        temp.in_place_roundto(as_amount_lval().commodity().custom_precision());
+        DEBUG("amount.parse", "value.cc: amount:amount this = " << &as_amount());
+        }
         return *this;
       }
 

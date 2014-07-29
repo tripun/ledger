@@ -209,16 +209,50 @@ balance_t::value(const datetime_t&   moment,
   DEBUG("amount.parse", " balance.cc:198: value fn  start");
   std::multimap<commodity_t*, amount_t, ledger::commodity_compare> tmp_amounts ;
   tmp_amounts.insert(amounts.begin(), amounts.end());
+  commodity_t* tmp_comm = NULL;
+  amount_t* tmp_amount = NULL;
+  bool round_amt = false;
+  std::multimap<commodity_t*, amount_t, ledger::commodity_compare>::iterator
+                                  i,j,k;
 
-  foreach(const amounts_map::value_type& pair, tmp_amounts) {
+  for(i = tmp_amounts.begin(), j = i; i != tmp_amounts.end(); i++) {
+    j++;
+    tmp_amount = NULL;
+    const amounts_map::value_type& pair = *i;
+
+    if (j == tmp_amounts.end() || pair.second.commodity().symbol() !=
+                                   (*j).second.commodity().symbol() )
+      round_amt = true;
+
     DEBUG("value.parse", "balance.cc: value fn in loop " << pair.second.commodity());
     if (optional<amount_t> val = pair.second.value(moment, in_terms_of)) {
       DEBUG("value.parse", "balance.cc: value fn if value " << (*val).commodity());
+      tmp_amount = &(*val);
       temp += *val;
       resolved = true;
+      if (round_amt) {
+        tmp_comm = &(*tmp_amount).commodity();
+        if ((*tmp_amount).has_commodity() && tmp_comm->has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
+          k = temp.amounts.find(tmp_comm);
+          if (k != temp.amounts.end() )
+            (k->second).in_place_roundto(tmp_comm->custom_precision());
+        }
+        round_amt = false;
+      }
+
     } else {
       DEBUG("value.parse", "balance.cc: value fn else add " << pair.second.commodity());
       temp += pair.second;
+      if (round_amt) {
+        tmp_amount = const_cast<amount_t*>(&pair.second);
+        tmp_comm = &(*tmp_amount).commodity();
+        if ((*tmp_amount).has_commodity() && tmp_comm->has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
+          k = temp.amounts.find(tmp_comm);
+          if (k != temp.amounts.end() )
+            (k->second).in_place_roundto(tmp_comm->custom_precision());
+        }
+        round_amt = false;
+      }
     }
   }
 
