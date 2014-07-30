@@ -17,10 +17,8 @@ commodity EUR
 
 test -V bal
          288.440 EUR  Assets:Cash
-         -15.270 EUR  Equity
-         136.580 EUR    Capital Gains
-        -151.850 EUR    Opening balances
+        -151.850 EUR  Equity:Opening balances
         -136.590 EUR  Income:Capital gains
 --------------------
-         136.580 EUR
+                   0
 end test
