@@ -201,10 +201,12 @@ long value_t::to_long() const
 amount_t value_t::to_amount() const
 {
   if (is_amount()) {
+    DEBUG("amount.parse", "value.cc:to_amount(): amount is set");
     return as_amount();
   } else {
     value_t temp(*this);
     temp.in_place_cast(AMOUNT);
+    DEBUG("amount.parse", "value.cc:to_amount(): amount not set,casted");
     return temp.as_amount();
   }
 }
@@ -315,6 +317,7 @@ value_t value_t::number() const
 
 value_t& value_t::operator+=(const value_t& val)
 {
+DEBUG("value.parse", "value.cc:320: +=  type " <<  type() << " val type " << val.type());
   if (is_string()) {
     if (val.is_string())
       as_string_lval() += val.as_string();
@@ -406,14 +409,30 @@ value_t& value_t::operator+=(const value_t& val)
     case AMOUNT:
       if (as_amount().commodity() != val.as_amount().commodity()) {
         in_place_cast(BALANCE);
+        DEBUG("value.parse", " value.cc: +=amount in place balance: "
+        << " val amount " << val.as_amount().quantity_string() <<
+        " "<< val.as_amount().commodity() );
         return *this += val;
       } else {
+        DEBUG("value.parse", " value.cc:else part case amount: " << as_amount().quantity_string()
+        << " commodity " << as_amount().commodity() );
+        if(as_amount().has_commodity() && as_amount().commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
+        amount_t temp(as_amount());
+        temp.in_place_roundto(as_amount().commodity().custom_precision());
+        DEBUG("amount.parse", "value.cc: amount:amount else round");
+        }
         as_amount_lval() += val.as_amount();
+      if(as_amount_lval().has_commodity() && as_amount_lval().commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
+        amount_t temp(as_amount_lval());
+        temp.in_place_roundto(as_amount_lval().commodity().custom_precision());
+        DEBUG("amount.parse", "value.cc: amount:amount else round 2 " << &as_amount());
+        }
         return *this;
       }
 
     case BALANCE:
       in_place_cast(BALANCE);
+      DEBUG("amount.parse", "value.cc+=:amount case balance ");
       as_balance_lval() += val.as_balance();
       return *this;
 
@@ -428,6 +447,7 @@ value_t& value_t::operator+=(const value_t& val)
       as_balance_lval() += val.to_amount();
       return *this;
     case AMOUNT:
+    DEBUG("amount.parse", "value.cc:440: balance:amount " << val.as_amount().quantity_string());
       as_balance_lval() += val.as_amount();
       return *this;
     case BALANCE:
@@ -751,6 +771,7 @@ value_t& value_t::operator/=(const value_t& val)
 
 bool value_t::is_equal_to(const value_t& val) const
 {
+  DEBUG("amount.parse", "value.cc:is_equal_to(): type check");
   switch (type()) {
   case VOID:
     return val.type() == VOID;
@@ -1412,21 +1433,29 @@ bool value_t::is_zero() const
 value_t value_t::value(const datetime_t&   moment,
                        const commodity_t * in_terms_of) const
 {
+  DEBUG("value.parse", "value.cc:1425 value fn type " << type());
   switch (type()) {
   case INTEGER:
     return NULL_VALUE;
 
   case AMOUNT:
-    if (optional<amount_t> val = as_amount().value(moment, in_terms_of))
+    DEBUG("value.parse", "value.cc:1425 value fn AMOUNT ");
+    if (optional<amount_t> val = as_amount().value(moment, in_terms_of)) {
+      amount_t& amt = *val;
+      if (amt.has_commodity() && amt.commodity().has_flags(COMMODITY_SET_CUSTOM_PRECISION))
+        amt.in_place_roundto(amt.commodity().custom_precision());
       return *val;
+    }
     return NULL_VALUE;
 
   case BALANCE:
+    DEBUG("value.parse", "value.cc:1425 value fn BALANCE");
     if (optional<balance_t> bal = as_balance().value(moment, in_terms_of))
       return *bal;
     return NULL_VALUE;
 
   case SEQUENCE: {
+    DEBUG("value.parse", "value.cc:1425 value fn SEQUENCE");
     value_t temp;
     foreach (const value_t& value, as_sequence())
       temp.push_back(value.value(moment, in_terms_of));
@@ -1603,6 +1632,7 @@ value_t value_t::abs() const
 
 void value_t::in_place_round()
 {
+  DEBUG("value.parse", "value.cc:1620:in_place_round ");
   switch (type()) {
   case INTEGER:
     return;

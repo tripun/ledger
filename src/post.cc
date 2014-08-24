@@ -40,6 +40,12 @@
 
 namespace ledger {
 
+bool compare_post_by_commodity::operator()(const post_t* left, const post_t* right) const
+{
+
+  return  (left->amount.commodity().symbol().compare(right->amount.commodity().symbol()) < 0);
+}
+
 bool post_t::has_tag(const string& tag, bool inherit) const
 {
   if (item_t::has_tag(tag))
@@ -185,6 +191,7 @@ namespace {
 
   value_t get_amount(post_t& post)
   {
+   DEBUG("amount.parse", "post.cc:get_amount");
     if (post.has_xdata() && post.xdata().has_flags(POST_EXT_COMPOUND))
       return post.xdata().compound_value;
     else if (post.amount.is_null())
@@ -417,7 +424,10 @@ expr_t::ptr_op_t post_t::lookup(const symbol_t::kind_t kind,
   switch (name[0]) {
   case 'a':
     if (name[1] == '\0' || name == "amount")
+      {
+      DEBUG("amount.parse", "post.cc:get_amount wrapper in lookup");
       return WRAP_FUNCTOR(get_wrapper<&get_amount>);
+      }
     else if (name == "account")
       return WRAP_FUNCTOR(get_account);
     else if (name == "account_base")
@@ -625,6 +635,7 @@ bool post_t::valid() const
 
 void post_t::add_to_value(value_t& value, const optional<expr_t&>& expr) const
 {
+  DEBUG("amount.parse", "post.cc:add to value start");
   if (xdata_ && xdata_->has_flags(POST_EXT_COMPOUND)) {
     if (! xdata_->compound_value.is_null())
       add_or_set_value(value, xdata_->compound_value);

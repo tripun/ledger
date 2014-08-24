@@ -261,7 +261,7 @@ value_t expr_t::op_t::calc(scope_t& scope, ptr_op_t * locus, const int depth)
     DEBUG("expr.calc", "");
   }
 #endif
-
+ DEBUG("expr.calc","op.cc:kind: "+lexical_cast<std::string>(kind)+" ");
   switch (kind) {
   case VALUE:
     result = as_value();
@@ -352,6 +352,7 @@ value_t expr_t::op_t::calc(scope_t& scope, ptr_op_t * locus, const int depth)
     break;
 
   case O_ADD:
+    DEBUG("expr.calc","op.cc: formatting");
     result = (left()->calc(scope, locus, depth + 1) +
               right()->calc(scope, locus, depth + 1));
     break;

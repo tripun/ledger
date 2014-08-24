@@ -156,6 +156,7 @@ public:
     : item_handler<post_t>(handler) {
     while (post_t * post = *iter) {
       try {
+        DEBUG("amount.parse", "filters.h:pass_down_posts");
         item_handler<post_t>::operator()(*post);
       }
       catch (const std::exception&) {

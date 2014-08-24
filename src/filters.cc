@@ -69,6 +69,7 @@ void post_splitter::operator()(post_t& post)
 {
   bind_scope_t bound_scope(report, post);
   value_t      result(group_by_expr.calc(bound_scope));
+  DEBUG("amount.parse", "filters.cc:post_splitter ");
 
   if (! result.is_null()) {
     value_to_posts_map::iterator i = posts_map.find(result);
@@ -153,6 +154,7 @@ void truncate_xacts::operator()(post_t& post)
 
 void sort_posts::post_accumulated_posts()
 {
+  DEBUG("amount.parse", "filters.cc: sort_posts");
   std::stable_sort(posts.begin(), posts.end(),
                    compare_items<post_t>(sort_order));
 
@@ -305,11 +307,11 @@ void anonymize_posts::operator()(post_t& post)
 void calc_posts::operator()(post_t& post)
 {
   post_t::xdata_t& xdata(post.xdata());
-
   if (last_post) {
     assert(last_post->has_xdata());
     if (calc_running_total)
       xdata.total = last_post->xdata().total;
+      DEBUG("amount.parse", "filters.cc:calc_posts");
     xdata.count = last_post->xdata().count + 1;
   } else {
     xdata.count = 1;

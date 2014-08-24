@@ -62,8 +62,16 @@ balance_t::balance_t(const long val)
 
 balance_t& balance_t::operator+=(const balance_t& bal)
 {
-  foreach (const amounts_map::value_type& pair, bal.amounts)
+  DEBUG("value.parse", "balance.cc:65  bal+bal fn");
+  std::multimap<commodity_t*, amount_t, ledger::commodity_compare> tmp_amounts ;
+  tmp_amounts.insert(bal.amounts.begin(), bal.amounts.end());
+
+  foreach(const amounts_map::value_type& pair, tmp_amounts) {
+    DEBUG("value.parse", "balance.cc: bal arg amount " << pair.second.quantity_string()
+    << " " << pair.second.commodity());
     *this += pair.second;
+  }
+
   return *this;
 }
 
@@ -72,15 +80,22 @@ balance_t& balance_t::operator+=(const amount_t& amt)
   if (amt.is_null())
     throw_(balance_error,
            _("Cannot add an uninitialized amount to a balance"));
-
+  DEBUG("value.parse", "balance.cc:79 bal+amt fn");
   if (amt.is_realzero())
     return *this;
-
   amounts_map::iterator i = amounts.find(&amt.commodity());
   if (i != amounts.end())
-    i->second += amt;
-  else
+   {
+   DEBUG("amount.parse", "balance.cc: amount added, value before " << i->second.quantity_string()
+   << " arg amount = " << amt.quantity_string() );
+   i->second += amt;
+   }
+  else {
+    DEBUG("value.parse", "balance.cc: bal+amt else arg amount " << amt.quantity_string()
+    << " " << amt.commodity());
     amounts.insert(amounts_map::value_type(&amt.commodity(), amt));
+    }
+
 
   return *this;
 }
@@ -97,7 +112,7 @@ balance_t& balance_t::operator-=(const amount_t& amt)
   if (amt.is_null())
     throw_(balance_error,
            _("Cannot subtract an uninitialized amount from a balance"));
-
+  DEBUG("value.parse", "balance.cc bal-amt fn");
   if (amt.is_realzero())
     return *this;
 
@@ -191,14 +206,57 @@ balance_t::value(const datetime_t&   moment,
   balance_t temp;
   bool      resolved = false;
 
-  foreach (const amounts_map::value_type& pair, amounts) {
+  DEBUG("amount.parse", " balance.cc:198: value fn  start");
+  std::multimap<commodity_t*, amount_t, ledger::commodity_compare> tmp_amounts ;
+  tmp_amounts.insert(amounts.begin(), amounts.end());
+  commodity_t* tmp_comm = NULL;
+  amount_t* tmp_amount = NULL;
+  bool round_amt = false;
+  std::multimap<commodity_t*, amount_t, ledger::commodity_compare>::iterator
+                                  i,j,k;
+
+  for(i = tmp_amounts.begin(), j = i; i != tmp_amounts.end(); i++) {
+    j++;
+    tmp_amount = NULL;
+    const amounts_map::value_type& pair = *i;
+
+    if (j == tmp_amounts.end() || pair.second.commodity().symbol() !=
+                                   (*j).second.commodity().symbol() )
+      round_amt = true;
+
+    DEBUG("value.parse", "balance.cc: value fn in loop " << pair.second.commodity());
     if (optional<amount_t> val = pair.second.value(moment, in_terms_of)) {
+      DEBUG("value.parse", "balance.cc: value fn if value " << (*val).commodity());
+      tmp_amount = &(*val);
       temp += *val;
       resolved = true;
+      if (round_amt) {
+        tmp_comm = &(*tmp_amount).commodity();
+        if ((*tmp_amount).has_commodity() && tmp_comm->has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
+          k = temp.amounts.find(tmp_comm);
+          if (k != temp.amounts.end() )
+            (k->second).in_place_roundto(tmp_comm->custom_precision());
+        }
+        round_amt = false;
+      }
+
     } else {
+      DEBUG("value.parse", "balance.cc: value fn else add " << pair.second.commodity());
       temp += pair.second;
+      if (round_amt) {
+        tmp_amount = const_cast<amount_t*>(&pair.second);
+        tmp_comm = &(*tmp_amount).commodity();
+        if ((*tmp_amount).has_commodity() && tmp_comm->has_flags(COMMODITY_SET_CUSTOM_PRECISION)) {
+          k = temp.amounts.find(tmp_comm);
+          if (k != temp.amounts.end() )
+            (k->second).in_place_roundto(tmp_comm->custom_precision());
+        }
+        round_amt = false;
+      }
     }
   }
+
+  DEBUG("amount.parse", " balance.cc:198: value fn  end");
   return resolved ? temp : optional<balance_t>();
 }
 
@@ -233,15 +291,18 @@ balance_t
 balance_t::strip_annotations(const keep_details_t& what_to_keep) const
 {
   balance_t temp;
-
-  foreach (const amounts_map::value_type& pair, amounts)
+  DEBUG("value.parse", "balance.cc:241 strip annotation fn");
+  foreach (const amounts_map::value_type& pair, amounts)  {
+    DEBUG("value.parse", "balance.cc: strip amount " << pair.second.quantity_string());
     temp += pair.second.strip_annotations(what_to_keep);
+  }
 
   return temp;
 }
 
 void balance_t::map_sorted_amounts(function<void(const amount_t&)> fn) const
 {
+  DEBUG("amount.parse", "balance.cc: map sorter");
   if (! amounts.empty()) {
     if (amounts.size() == 1) {
       const amount_t& amount((*amounts.begin()).second);

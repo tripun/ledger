@@ -398,6 +398,7 @@ format_t::element_t * format_t::parse_elements(const string& fmt,
 
 string format_t::real_calc(scope_t& scope)
 {
+  DEBUG("amount.parse", "format.cc:real_calc formatting");
   std::ostringstream out_str;
 
   for (element_t * elem = elements.get(); elem; elem = elem->next.get()) {

@@ -163,6 +163,7 @@ namespace {
     void commodity_format_directive(commodity_t& comm, string format);
     void commodity_nomarket_directive(commodity_t& comm);
     void commodity_default_directive(commodity_t& comm);
+    void commodity_precision_directive(commodity_t& comm,string precise);
 
     void default_commodity_directive(char * line);
 
@@ -1096,6 +1097,8 @@ void instance_t::commodity_directive(char * line)
         commodity_default_directive(*commodity);
       else if (keyword == "note")
         commodity->set_note(string(b));
+      else if (keyword == "precision")
+        commodity_precision_directive(*commodity,b);
     }
   }
 }
@@ -1130,7 +1133,14 @@ void instance_t::commodity_default_directive(commodity_t& comm)
 {
   commodity_pool_t::current_pool->default_commodity = &comm;
 }
-
+void instance_t::commodity_precision_directive(commodity_t& comm,string precise)
+{
+  trim(precise);
+  int_least16_t _precision_level=boost::lexical_cast<int_least16_t>(precise);
+  comm.set_custom_precision(_precision_level);
+  comm.add_flags(COMMODITY_SET_CUSTOM_PRECISION);
+  DEBUG("amount.parse", "precision directive called " +lexical_cast<string>(comm.custom_precision()));
+}
 void instance_t::tag_directive(char * line)
 {
   char * p = skip_ws(line);
